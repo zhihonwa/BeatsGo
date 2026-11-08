@@ -23,5 +23,5 @@
     <color name="ripple_on_primary">#33FFFFFF</color>
     <color name="ripple_on_surface">#1F0F766E</color>
 
-    <color name="ic_launcher_background">#CCFBF1</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
 </resources>

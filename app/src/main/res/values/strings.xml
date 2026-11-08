@@ -34,7 +34,7 @@
     <string name="toast_no_file_picker">未找到文件选择器</string>
     <string name="toast_started">已开始报时，每 %1$d 分钟播报一次</string>
     <string name="toast_invalid_interval">请输入 %1$d–%2$d 之间的分钟数，已恢复默认 %3$d</string>
-    <string name="customize_entry">...</string>
+    <string name="customize_entry">···</string>
     <string name="customize_entry_desc">语音提示定制</string>
     <string name="prompt_page_title">语音提示定制</string>
     <string name="prompt_page_desc">勾选需要的语音提示，播报文本可自行编辑（用 xx 表示已运行分钟数）</string>
@@ -57,5 +57,5 @@
     <string name="about_bpm_title">运动音乐 BPM 建议</string>
     <string name="about_bpm_body">运动的音乐节奏（BPM，每分钟节拍数）与步频越接近，越能带动步伐、提升耐力。推荐区间：\n\n慢走 / 散步：80–100 BPM\n快走：100–130 BPM\n慢跑：120–140 BPM\n常规跑步：140–160 BPM\n快跑：160–180 BPM\n\n提示：先按自己的舒适步频选歌，再逐步提高音乐 BPM 来提升强度。</string>
     <string name="about_repo_title">开源与支持</string>
-    <string name="about_repo_body">本项目完全免费使用。如果它帮到了你，欢迎在 GitHub 仓库点亮一颗 Star 支持一下。</string>
+    <string name="about_repo_body">本项目完全免费使用。如果它帮到了你，欢迎在 GitHub 仓库点亮一颗 Star 支持一下。\n仓库地址：https://github.com/zhihonwa/BeatsGo</string>
 </resources>
