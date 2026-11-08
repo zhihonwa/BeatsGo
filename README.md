@@ -59,14 +59,14 @@ BeatsGo/
 ### 方式一：打 tag 自动构建并发布 Release（推荐）
 
 ```bash
-git tag v1.9.0
-git push origin v1.9.0
+git tag v1.10.0
+git push origin v1.10.0
 ```
 
 推送 tag 后自动触发 **Build APK** 工作流：
 
-1. 云端编译 APK，版本号自动取自 tag（`v1.9.0` → `versionName = 1.9.0`，`versionCode` 取运行序号）
-2. 产物重命名为 **`beatsgo_v1.9.0.apk`**
+1. 云端编译 APK，版本号自动取自 tag（`v1.10.0` → `versionName = 1.10.0`，`versionCode` 取运行序号）
+2. 产物重命名为 **`beatsgo_v1.10.0.apk`**
 3. 自动创建同名 GitHub Release 并上传该 APK（附自动生成的变更说明）
 4. 同时保留 Actions Artifacts（`beatsgo_apk`，保留 30 天）
 

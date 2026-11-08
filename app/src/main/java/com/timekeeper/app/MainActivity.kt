@@ -269,7 +269,7 @@ class MainActivity : Activity() {
             TimeKeeperService.MIN_SPEED_PERCENT,
             TimeKeeperService.MAX_SPEED_PERCENT
         )
-        binding.musicSpeedSeek.progress = speedPercentFromSeekProgress(speedPercent)
+        binding.musicSpeedSeek.progress = seekProgressFromSpeedPercent(speedPercent)
         binding.musicSpeedLabel.text =
             getString(R.string.speed_percent, formatSpeedOffset(speedPercent))
     }
@@ -281,6 +281,12 @@ class MainActivity : Activity() {
         (progress + TimeKeeperService.MIN_SPEED_PERCENT).coerceIn(
             TimeKeeperService.MIN_SPEED_PERCENT,
             TimeKeeperService.MAX_SPEED_PERCENT
+        )
+
+    private fun seekProgressFromSpeedPercent(percent: Int): Int =
+        (percent - TimeKeeperService.MIN_SPEED_PERCENT).coerceIn(
+            0,
+            TimeKeeperService.MAX_SPEED_PERCENT - TimeKeeperService.MIN_SPEED_PERCENT
         )
 
     private fun queryDisplayName(uri: Uri): String {
