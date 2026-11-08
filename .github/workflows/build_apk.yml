@@ -33,7 +33,11 @@ jobs:
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             TAG="${GITHUB_REF_NAME}"
           else
-            TAG="v$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)"
+            TAG="v$(sed -n 's/^.*versionName.*"\([0-9][0-9.]*\)".*$/\1/p' app/build.gradle.kts | head -n 1)"
+          fi
+          if [[ -z "${TAG}" || "${TAG}" == "v" ]]; then
+            echo "无法解析 versionName，请检查 app/build.gradle.kts" >&2
+            exit 1
           fi
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "semver=${TAG#v}" >> "$GITHUB_OUTPUT"
