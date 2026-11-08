@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">BeatsTimer</string>
+    <string name="app_name">BeatsGo</string>
     <string name="subtitle">选择动感音乐 · 开始运动计时</string>
     <string name="label_interval">间隔</string>
     <string name="unit_minutes">分钟</string>
@@ -23,6 +23,8 @@
     <string name="cd_clear_music">清除已选音乐</string>
     <string name="label_volume">音量</string>
     <string name="volume_percent">%1$d%%</string>
+    <string name="label_speed">速度</string>
+    <string name="speed_percent">%1$s%%</string>
     <string name="stability_entry">运行稳定性设置</string>
     <string name="stability_title">运行稳定性</string>
     <string name="stability_grant">逐项授权</string>
@@ -45,14 +47,14 @@
     <string name="prompt_save">保存</string>
     <string name="prompt_saved">语音提示已保存</string>
     <string name="elapsed_idle">--:--:--</string>
-    <string name="cd_about">关于 BeatsTimer</string>
-    <string name="about_title">关于 BeatsTimer</string>
+    <string name="cd_about">关于 BeatsGo</string>
+    <string name="about_title">关于 BeatsGo</string>
     <string name="about_intro_title">应用介绍</string>
-    <string name="about_intro_body">BeatsTimer 是一款为运动场景设计的节奏音乐计时应用。它一边播放你喜欢的节奏音乐，一边按设定间隔用语音播报当前时间（如“9点5分”），还可选播报“已完成 xx 分钟”“请补充水分”“坚持运动，加油”等提示，让你跑步、骑行、健身时不必频繁看表也能掌握节奏。所有语音由系统离线 TTS 合成，无需联网。</string>
+    <string name="about_intro_body">BeatsGo 是一款为运动场景设计的节奏音乐计时应用。它一边播放你喜欢的节奏音乐，一边按设定间隔用语音播报当前时间（如“9点5分”），还可选播报“已完成 xx 分钟”“请补充水分”“坚持运动，加油”等提示，让你跑步、骑行、健身时不必频繁看表也能掌握节奏。所有语音由系统离线 TTS 合成，无需联网。</string>
     <string name="about_usage_title">使用步骤</string>
     <string name="about_usage_body">1.只操作一次即可。点击底部行稳定性设置”，点击“逐项授权”。\n2.“选择运动音乐”挑选本地音乐，如何选择音乐请参考关于页面的“运动音乐 BPM 建议”\n3. 点击“开始报时”，立即播报当前时间，并开始播放音乐与计时\n  </string>
     <string name="about_bpm_title">运动音乐 BPM 建议</string>
     <string name="about_bpm_body">运动的音乐节奏（BPM，每分钟节拍数）与步频越接近，越能带动步伐、提升耐力。推荐区间：\n\n慢走 / 散步：80–100 BPM\n快走：100–130 BPM\n慢跑：120–140 BPM\n常规跑步：140–160 BPM\n快跑：160–180 BPM\n\n提示：先按自己的舒适步频选歌，再逐步提高音乐 BPM 来提升强度。</string>
     <string name="about_repo_title">开源与支持</string>
-    <string name="about_repo_body">本项目完全免费使用。如果它帮到了你，欢迎点亮一颗 Star 支持一下。\nhttps://github.com/zhihonwa/BeatsTimer</string>
+    <string name="about_repo_body">本项目完全免费使用。如果它帮到了你，欢迎在 GitHub 仓库点亮一颗 Star 支持一下。</string>
 </resources>

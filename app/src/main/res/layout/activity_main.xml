@@ -137,6 +137,39 @@
                     android:textSize="14sp"
                     tools:text="60%" />
             </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/label_speed"
+                    android:textColor="@color/on_surface_variant"
+                    android:textSize="14sp" />
+
+                <SeekBar
+                    android:id="@+id/music_speed_seek"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="50"
+                    android:progress="25" />
+
+                <TextView
+                    android:id="@+id/music_speed_label"
+                    android:layout_width="52dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:textColor="@color/on_surface_variant"
+                    android:textSize="14sp"
+                    tools:text="+10%" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout

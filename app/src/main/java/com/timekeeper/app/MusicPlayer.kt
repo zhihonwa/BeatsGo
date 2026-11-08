@@ -5,6 +5,7 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.media.PlaybackParams
 import android.net.Uri
 import android.util.Log
 
@@ -24,6 +25,9 @@ class MusicPlayer(context: Context) {
     private var volume = DEFAULT_VOLUME
 
     @Volatile
+    private var speed = DEFAULT_SPEED
+
+    @Volatile
     private var ducked = false
 
     @Volatile
@@ -36,6 +40,11 @@ class MusicPlayer(context: Context) {
     fun setVolume(value: Float) {
         volume = value.coerceIn(0f, 1f)
         applyVolume()
+    }
+
+    fun setSpeed(value: Float) {
+        speed = value.coerceIn(MIN_SPEED, MAX_SPEED)
+        if (playing) applySpeed()
     }
 
     fun start() {
@@ -54,6 +63,7 @@ class MusicPlayer(context: Context) {
             playing = true
             ducked = false
             if (musicUri != null) requestFocus()
+            applySpeed()
             applyVolume()
             true
         } catch (e: Exception) {
@@ -81,6 +91,7 @@ class MusicPlayer(context: Context) {
             }
             playing = true
             ducked = false
+            applySpeed()
         } catch (e: Exception) {
             Log.w(TAG, "音乐播放启动失败，回退到内置保活音轨", e)
             releasePlayer()
@@ -106,6 +117,7 @@ class MusicPlayer(context: Context) {
             }
             playing = true
             ducked = false
+            applySpeed()
         } catch (e: Exception) {
             Log.w(TAG, "内置保活音轨启动失败", e)
             releasePlayer()
@@ -118,6 +130,7 @@ class MusicPlayer(context: Context) {
         try {
             mp.seekTo(0)
             mp.start()
+            applySpeedTo(mp)
         } catch (e: Exception) {
             Log.w(TAG, "音乐循环重播失败", e)
         }
@@ -182,6 +195,23 @@ class MusicPlayer(context: Context) {
         }
     }
 
+    private fun applySpeed() {
+        val mp = player ?: return
+        if (!playing) return
+        applySpeedTo(mp)
+    }
+
+    private fun applySpeedTo(mp: MediaPlayer) {
+        val base = if (musicUri != null) speed else BUILTIN_SPEED
+        try {
+            mp.playbackParams = PlaybackParams()
+                .setSpeed(base)
+                .setPitch(1f)
+        } catch (e: Exception) {
+            Log.w(TAG, "播放速度调整异常", e)
+        }
+    }
+
     private fun handleFocusChange(change: Int) {
         when (change) {
             AudioManager.AUDIOFOCUS_GAIN -> {
@@ -216,7 +246,11 @@ class MusicPlayer(context: Context) {
     companion object {
         private const val TAG = "MusicPlayer"
         const val DEFAULT_VOLUME = 0.6f
+        const val DEFAULT_SPEED = 1.0f
+        const val MIN_SPEED = 0.75f
+        const val MAX_SPEED = 1.25f
         private const val BUILTIN_VOLUME = 1.0f
+        private const val BUILTIN_SPEED = 1.0f
         private const val DUCK_RATIO = 0.2f
     }
 }

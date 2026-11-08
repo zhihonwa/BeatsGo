@@ -89,6 +89,29 @@ class MainActivity : Activity() {
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
         })
+        binding.musicSpeedSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val speedPercent = speedPercentFromSeekProgress(progress)
+                binding.musicSpeedLabel.text =
+                    getString(R.string.speed_percent, formatSpeedOffset(speedPercent))
+                if (!fromUser) return
+                getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE)
+                    .edit()
+                    .putInt(TimeKeeperService.KEY_SPEED_PERCENT, speedPercent)
+                    .apply()
+                if (TimeKeeperService.isReporting) {
+                    startForegroundService(
+                        Intent(this@MainActivity, TimeKeeperService::class.java)
+                            .setAction(TimeKeeperService.ACTION_SET_SPEED)
+                            .putExtra(TimeKeeperService.EXTRA_SPEED_PERCENT, speedPercent)
+                    )
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+        })
 
         updateMusicUi()
         renderCountdown()
@@ -239,7 +262,26 @@ class MainActivity : Activity() {
         ).coerceIn(0, 100)
         binding.musicVolumeSeek.progress = volume
         binding.musicVolumeLabel.text = getString(R.string.volume_percent, volume)
+        val speedPercent = prefs.getInt(
+            TimeKeeperService.KEY_SPEED_PERCENT,
+            TimeKeeperService.DEFAULT_SPEED_PERCENT
+        ).coerceIn(
+            TimeKeeperService.MIN_SPEED_PERCENT,
+            TimeKeeperService.MAX_SPEED_PERCENT
+        )
+        binding.musicSpeedSeek.progress = speedPercentFromSeekProgress(speedPercent)
+        binding.musicSpeedLabel.text =
+            getString(R.string.speed_percent, formatSpeedOffset(speedPercent))
     }
+
+    private fun formatSpeedOffset(percent: Int): String =
+        if (percent > 0) "+$percent" else percent.toString()
+
+    private fun speedPercentFromSeekProgress(progress: Int): Int =
+        (progress + TimeKeeperService.MIN_SPEED_PERCENT).coerceIn(
+            TimeKeeperService.MIN_SPEED_PERCENT,
+            TimeKeeperService.MAX_SPEED_PERCENT
+        )
 
     private fun queryDisplayName(uri: Uri): String {
         var name = uri.lastPathSegment ?: getString(R.string.music_unknown_file)

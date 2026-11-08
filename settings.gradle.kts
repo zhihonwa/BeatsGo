@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TimeKeeper"
+rootProject.name = "BeatsGo"
 include(":app")
