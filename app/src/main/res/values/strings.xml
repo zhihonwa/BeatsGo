@@ -61,4 +61,26 @@
     <string name="about_detect_body">选择音乐后，应用会自动检测该曲目的 BPM 并显示在设置面板中，方便你对照步频调速。由于初始检测基于曲目开头的音频片段，结果可能与实际节拍略有偏差：当曲目播放约一分半钟后，应用会对当前曲目自动进行一次复测；仅当复测结果通过预设校验（数值有效、且与原检测值差异明显）时，才会用复测值替换原值，否则保持原值不变。</string>
     <string name="about_repo_title">开源与支持</string>
     <string name="about_repo_body">本项目完全免费使用。如果它帮到了你，欢迎在 GitHub 仓库点亮一颗 Star 支持一下。\n仓库地址：https://github.com/zhihonwa/BeatsGo</string>
+
+    <string name="cd_bpm_entry">打开可变 BPM 设定</string>
+    <string name="variable_bpm_page_title">可变 BPM 设定</string>
+    <string name="variable_bpm_page_desc">本选项为变速运动设计：启用后，音乐按五个阶段依次变速播放——先逐步加快、再逐步回落，每阶段按设定时长自动切换 BPM。方案全局有效，对所有音乐共用。</string>
+    <string name="variable_bpm_enable">启用可变 BPM</string>
+    <string name="variable_bpm_enable_hint">启用后播放将按下方五个阶段自动变速；关闭时使用主界面手动 BPM 设置</string>
+    <string name="variable_bpm_stage_1">阶段 1</string>
+    <string name="variable_bpm_stage_2">阶段 2</string>
+    <string name="variable_bpm_stage_3">阶段 3</string>
+    <string name="variable_bpm_stage_4">阶段 4</string>
+    <string name="variable_bpm_stage_5">阶段 5</string>
+    <string name="variable_bpm_stage_bpm_auto">%1$d BPM（自动检测）</string>
+    <string name="variable_bpm_stage_bpm">%1$d BPM（%2$s）</string>
+    <string name="variable_bpm_unit_bpm">BPM</string>
+    <string name="variable_bpm_unit_minutes">分钟</string>
+    <string name="variable_bpm_total_label">总时长</string>
+    <string name="variable_bpm_total_value">%1$d 分钟</string>
+    <string name="variable_bpm_reset">恢复缺省值</string>
+    <string name="variable_bpm_no_music_hint">尚未检测到音乐 BPM：请先在主界面选择音乐，各阶段 BPM 将按检测值自动计算</string>
+    <string name="toast_variable_bpm_range">阶段 BPM 将超出有效范围（%1$d–%2$d），已保持原值</string>
+    <string name="toast_variable_reset">已恢复缺省值</string>
+    <string name="notification_variable_running">变速播放中 · 阶段 %1$d · %2$d BPM</string>
 </resources>

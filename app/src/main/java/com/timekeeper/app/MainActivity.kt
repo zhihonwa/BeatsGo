@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.graphics.Paint
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -42,6 +43,11 @@ class MainActivity : Activity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 TimeKeeperService.ACTION_BPM_UPDATED -> updateMusicUi()
+                TimeKeeperService.ACTION_STATE_CHANGED -> {
+                    refreshButtonState()
+                    updateMusicUi()
+                }
+
                 else -> refreshButtonState()
             }
         }
@@ -94,6 +100,12 @@ class MainActivity : Activity() {
         })
         binding.musicSpeedSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (VariableBpm.isEnabled(
+                        getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE)
+                    )
+                ) {
+                    return
+                }
                 val prefs = getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE)
                 val base = prefs.getInt(TimeKeeperService.KEY_MUSIC_BPM, 0)
                 if (base <= 0) return
@@ -123,6 +135,11 @@ class MainActivity : Activity() {
         binding.volumePlusButton.setOnClickListener { applyVolumeDelta(VOLUME_STEP) }
         binding.bpmMinusButton.setOnClickListener { applyBpmDelta(-TimeKeeperService.BPM_STEP) }
         binding.bpmPlusButton.setOnClickListener { applyBpmDelta(TimeKeeperService.BPM_STEP) }
+        binding.bpmLabel.paintFlags =
+            binding.bpmLabel.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+        binding.bpmLabel.setOnClickListener {
+            startActivity(Intent(this, VariableBpmActivity::class.java))
+        }
 
         updateMusicUi()
         renderCountdown()
@@ -148,6 +165,7 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         renderCountdown()
+        updateMusicUi()
         uiHandler.postDelayed(countdownUpdater, 250L)
     }
 
@@ -286,19 +304,35 @@ class MainActivity : Activity() {
         }
 
         val baseBpm = if (hasMusic) prefs.getInt(TimeKeeperService.KEY_MUSIC_BPM, 0) else 0
-        binding.musicSpeedSeek.isEnabled = baseBpm > 0
-        binding.bpmMinusButton.isEnabled = baseBpm > 0
-        binding.bpmPlusButton.isEnabled = baseBpm > 0
-        if (baseBpm > 0) {
-            val delta = prefs.getInt(
-                TimeKeeperService.KEY_SPEED_DELTA,
-                TimeKeeperService.DEFAULT_BPM_DELTA
-            ).coerceIn(TimeKeeperService.MIN_BPM_DELTA, TimeKeeperService.MAX_BPM_DELTA)
-            binding.musicSpeedSeek.progress = delta - TimeKeeperService.MIN_BPM_DELTA
-            binding.musicSpeedLabel.text = (baseBpm + delta).toString()
-        } else {
-            binding.musicSpeedSeek.progress = -TimeKeeperService.MIN_BPM_DELTA
-            binding.musicSpeedLabel.setText(R.string.value_unavailable)
+        val variableOn = VariableBpm.isEnabled(prefs)
+        val stageBpm = TimeKeeperService.currentVariableBpm
+        val speedEditable = baseBpm > 0 && !variableOn
+        binding.musicSpeedSeek.isEnabled = speedEditable
+        binding.bpmMinusButton.isEnabled = speedEditable
+        binding.bpmPlusButton.isEnabled = speedEditable
+        when {
+            variableOn -> {
+                binding.musicSpeedSeek.progress = TimeKeeperService.MAX_BPM_DELTA
+                binding.musicSpeedLabel.text = when {
+                    stageBpm > 0 -> stageBpm.toString()
+                    baseBpm > 0 -> baseBpm.toString()
+                    else -> getString(R.string.value_unavailable)
+                }
+            }
+
+            baseBpm > 0 -> {
+                val delta = prefs.getInt(
+                    TimeKeeperService.KEY_SPEED_DELTA,
+                    TimeKeeperService.DEFAULT_BPM_DELTA
+                ).coerceIn(TimeKeeperService.MIN_BPM_DELTA, TimeKeeperService.MAX_BPM_DELTA)
+                binding.musicSpeedSeek.progress = delta - TimeKeeperService.MIN_BPM_DELTA
+                binding.musicSpeedLabel.text = (baseBpm + delta).toString()
+            }
+
+            else -> {
+                binding.musicSpeedSeek.progress = -TimeKeeperService.MIN_BPM_DELTA
+                binding.musicSpeedLabel.setText(R.string.value_unavailable)
+            }
         }
     }
 

@@ -46,11 +46,14 @@ class TimeKeeperService : Service() {
 
     private var bpmRecheckDone = false
 
+    private var variableApplied = false
+
     private val countdownRunnable = object : Runnable {
         override fun run() {
             if (!running) return
             checkAndReport()
             maybeRecheckBpm()
+            syncVariableBpm()
             handler.postDelayed(this, 1000L)
         }
     }
@@ -116,9 +119,14 @@ class TimeKeeperService : Service() {
                     ?: DEFAULT_VOLUME_PERCENT) / 100f
             )
 
-            ACTION_SET_SPEED -> musicPlayer.setSpeed(
-                intent?.getFloatExtra(EXTRA_SPEED_RATE, speedRate()) ?: speedRate()
-            )
+            ACTION_SET_SPEED -> if (!VariableBpm.isEnabled(
+                    getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                )
+            ) {
+                musicPlayer.setSpeed(
+                    intent?.getFloatExtra(EXTRA_SPEED_RATE, speedRate()) ?: speedRate()
+                )
+            }
 
             ACTION_SET_MUSIC -> applyMusicSource(intent?.getStringExtra(EXTRA_MUSIC_URI))
 
@@ -148,6 +156,7 @@ class TimeKeeperService : Service() {
         notifyStateChanged()
         speakCurrentTime(0)
         scheduleFallbackAlarm()
+        syncVariableBpm()
         handler.postDelayed(countdownRunnable, 1000L)
     }
 
@@ -157,6 +166,9 @@ class TimeKeeperService : Service() {
         isReporting = false
         isPaused = false
         nextReportSecond = 0
+        variableApplied = false
+        currentVariableStage = 0
+        currentVariableBpm = 0
         resetTimerOrigin()
         handler.removeCallbacks(countdownRunnable)
         cancelFallbackAlarm()
@@ -229,7 +241,9 @@ class TimeKeeperService : Service() {
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         musicPlayer.setMusicUri(prefs.getString(KEY_MUSIC_URI, null)?.let { Uri.parse(it) })
         musicPlayer.setVolume(prefs.getInt(KEY_VOLUME, DEFAULT_VOLUME_PERCENT) / 100f)
-        musicPlayer.setSpeed(speedRate())
+        if (!VariableBpm.isEnabled(prefs)) {
+            musicPlayer.setSpeed(speedRate())
+        }
     }
 
     private fun speedRate(): Float {
@@ -271,8 +285,46 @@ class TimeKeeperService : Service() {
         val old = prefs.getInt(KEY_MUSIC_BPM, 0)
         if (old > 0 && abs(bpm - old) <= BPM_RECHECK_MIN_DELTA) return
         prefs.edit().putInt(KEY_MUSIC_BPM, bpm).apply()
-        if (running) musicPlayer.setSpeed(speedRate())
+        if (running && !VariableBpm.isEnabled(prefs)) musicPlayer.setSpeed(speedRate())
         sendBroadcast(Intent(ACTION_BPM_UPDATED).setPackage(packageName))
+    }
+
+    private fun syncVariableBpm() {
+        if (!running) return
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val enabled = VariableBpm.isEnabled(prefs)
+        val base = prefs.getInt(KEY_MUSIC_BPM, 0)
+        if (!enabled || base <= 0) {
+            if (variableApplied) {
+                variableApplied = false
+                currentVariableStage = 0
+                currentVariableBpm = 0
+                musicPlayer.setSpeed(speedRate())
+                updateNotification()
+                notifyStateChanged()
+            }
+            return
+        }
+        val durations = VariableBpm.readDurations(prefs)
+        val stage = VariableBpm.stageAt(computeElapsedSeconds(), durations)
+        if (stage == 0) {
+            variableApplied = false
+            currentVariableStage = 0
+            currentVariableBpm = 0
+            pauseReporting()
+            return
+        }
+        val bpm = base + VariableBpm.readDeltas(prefs).take(stage).sum()
+        if (!variableApplied || stage != currentVariableStage || bpm != currentVariableBpm) {
+            variableApplied = true
+            currentVariableStage = stage
+            currentVariableBpm = bpm
+            musicPlayer.setSpeed(
+                (bpm / base.toFloat()).coerceIn(MusicPlayer.MIN_SPEED, MusicPlayer.MAX_SPEED)
+            )
+            updateNotification()
+            notifyStateChanged()
+        }
     }
 
     private fun applyMusicSource(uriString: String?) {
@@ -449,7 +501,16 @@ class TimeKeeperService : Service() {
             .setContentTitle(getString(R.string.app_name))
             .setContentText(
                 when {
-                    running -> getString(R.string.notification_running, intervalMinutes)
+                    running -> if (currentVariableBpm > 0) {
+                        getString(
+                            R.string.notification_variable_running,
+                            currentVariableStage,
+                            currentVariableBpm
+                        )
+                    } else {
+                        getString(R.string.notification_running, intervalMinutes)
+                    }
+
                     isPaused -> getString(R.string.notification_timer_paused)
                     else -> getString(R.string.notification_paused)
                 }
@@ -606,6 +667,14 @@ class TimeKeeperService : Service() {
 
         @Volatile
         var intervalSeconds = DEFAULT_INTERVAL * 60
+
+        @Volatile
+        var currentVariableStage = 0
+            private set
+
+        @Volatile
+        var currentVariableBpm = 0
+            private set
 
         fun computeElapsedSeconds(): Int {
             if (!isReporting || startedRealtimeMillis == 0L) return 0
