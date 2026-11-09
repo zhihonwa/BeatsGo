@@ -303,7 +303,7 @@
                 android:id="@+id/countdown_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="12dp"
                 android:fontFeatureSettings="tnum"
                 android:gravity="center"
                 android:text="@string/countdown_idle"
