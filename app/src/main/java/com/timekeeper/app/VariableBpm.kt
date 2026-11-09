@@ -9,10 +9,8 @@ object VariableBpm {
     const val MAX_DURATION = 30
     const val DURATION_STEP = 5
     const val MIN_DELTA = 0
-    const val MAX_DELTA = 20
+    const val MAX_DELTA = 25
     const val DELTA_STEP = 5
-    const val MIN_STAGE_BPM = 60
-    const val MAX_STAGE_BPM = 200
 
     const val KEY_ENABLED = "variable_bpm_enabled"
     private const val KEY_STAGE_PREFIX = "variable_bpm_stage"
@@ -72,8 +70,6 @@ object VariableBpm {
         return result
     }
 
-    fun isWithinValidRange(bpms: IntArray): Boolean =
-        bpms.all { it in MIN_STAGE_BPM..MAX_STAGE_BPM }
 
     fun totalMinutes(durations: IntArray): Int = durations.sum()
 

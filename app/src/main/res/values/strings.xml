@@ -57,8 +57,8 @@
     <string name="about_usage_body">1.只操作一次即可。点击底部行稳定性设置”，点击“逐项授权”。\n2.“选择运动音乐”挑选本地音乐，如何选择音乐请参考关于页面的“运动音乐 BPM 建议”\n3. 点击“开始报时”，立即播报当前时间，并开始播放音乐与计时\n  </string>
     <string name="about_bpm_title">运动音乐 BPM 建议</string>
     <string name="about_bpm_body">运动的音乐节奏（BPM，每分钟节拍数）与步频越接近，越能带动步伐、提升耐力。推荐区间：\n\n慢走 / 散步：80–100 BPM\n快走：100–130 BPM\n慢跑：120–140 BPM\n常规跑步：140–160 BPM\n快跑：160–180 BPM\n\n提示：先按自己的舒适步频选歌，再逐步提高音乐 BPM 来提升强度。</string>
-    <string name="about_detect_title">音乐 BPM 检测</string>
-    <string name="about_detect_body">选择音乐后，应用会自动检测该曲目的 BPM 并显示在设置面板中，方便你对照步频调速。由于初始检测基于曲目开头的音频片段，结果可能与实际节拍略有偏差：当曲目播放约一分半钟后，应用会对当前曲目自动进行一次复测；仅当复测结果通过预设校验（数值有效、且与原检测值差异明显）时，才会用复测值替换原值，否则保持原值不变。</string>
+    <string name="about_detect_title">音乐 BPM 检测与手动设定</string>
+    <string name="about_detect_body">选择音乐后，应用会自动检测该曲目的 BPM 并显示在主界面 BPM 行。自动检测基于曲目开头的音频片段分析，结果可能与实际节拍存在偏差（例如 180 BPM 被识别为 89 BPM）。由于 BPM 感知带有一定主观性，你可以直接点击主界面的 BPM 数值，手动输入你认为准确的 BPM（60–200）：手动值会立即保存并与该音乐文件永久绑定，下次选择同一首音乐时自动使用，不再重复检测；启用可变 BPM 时，五个阶段的变速均以该值为基准计算。</string>
     <string name="about_repo_title">开源与支持</string>
     <string name="about_repo_body">本项目完全免费使用。如果它帮到了你，欢迎在 GitHub 仓库点亮一颗 Star 支持一下。\n仓库地址：https://github.com/zhihonwa/BeatsGo</string>
 
@@ -80,7 +80,10 @@
     <string name="variable_bpm_total_value">%1$d 分钟</string>
     <string name="variable_bpm_reset">恢复缺省值</string>
     <string name="variable_bpm_no_music_hint">尚未检测到音乐 BPM：请先在主界面选择音乐，各阶段 BPM 将按检测值自动计算</string>
-    <string name="toast_variable_bpm_range">阶段 BPM 将超出有效范围（%1$d–%2$d），已保持原值</string>
     <string name="toast_variable_reset">已恢复缺省值</string>
     <string name="notification_variable_running">变速播放中 · 阶段 %1$d · %2$d BPM</string>
+    <string name="manual_bpm_title">手动设定 BPM</string>
+    <string name="manual_bpm_message">自动检测可能与实际节拍有偏差，可输入你认为准确的 BPM（%1$d–%2$d）。手动值将与此音乐文件永久绑定，下次选择同一首音乐时自动使用；启用可变 BPM 时以该值为基准。</string>
+    <string name="manual_bpm_invalid">请输入 %1$d–%2$d 之间的整数，未保存</string>
+    <string name="manual_bpm_saved">BPM 已保存：%1$d</string>
 </resources>

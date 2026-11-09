@@ -140,19 +140,7 @@ class VariableBpmActivity : Activity() {
         val candidate = deltas.copyOf()
         candidate[stage - 1] =
             if (VariableBpm.DEFAULT_DELTAS[stage - 1] >= 0) nextMagnitude else -nextMagnitude
-        val bpms = VariableBpm.stageBpms(baseBpm, candidate)
-        if (!VariableBpm.isWithinValidRange(bpms)) {
-            Toast.makeText(
-                this,
-                getString(
-                    R.string.toast_variable_bpm_range,
-                    VariableBpm.MIN_STAGE_BPM,
-                    VariableBpm.MAX_STAGE_BPM
-                ),
-                Toast.LENGTH_SHORT
-            ).show()
-            return
-        }
+
         deltas = candidate
         VariableBpm.saveDeltas(
             getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE),

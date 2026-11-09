@@ -21,7 +21,10 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.provider.OpenableColumns
 import android.provider.Settings
+import android.text.InputType
 import android.view.View
+import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.Toast
 import com.timekeeper.app.databinding.ActivityMainBinding
@@ -140,6 +143,9 @@ class MainActivity : Activity() {
         binding.bpmLabel.setOnClickListener {
             startActivity(Intent(this, VariableBpmActivity::class.java))
         }
+        binding.musicSpeedLabel.paintFlags =
+            binding.musicSpeedLabel.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+        binding.musicSpeedLabel.setOnClickListener { showManualBpmDialog() }
 
         updateMusicUi()
         renderCountdown()
@@ -378,8 +384,87 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun showManualBpmDialog() {
+        val prefs = getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE)
+        val uriString = prefs.getString(TimeKeeperService.KEY_MUSIC_URI, null) ?: return
+        val base = prefs.getInt(TimeKeeperService.KEY_MUSIC_BPM, 0)
+        if (base <= 0) return
+        val input = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER
+            setText(base.toString())
+            setSelection(text?.length ?: 0)
+        }
+        val wrapper = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            val pad = (16 * resources.displayMetrics.density).toInt()
+            setPadding(pad, pad / 2, pad, 0)
+            addView(input)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.manual_bpm_title)
+            .setMessage(
+                getString(
+                    R.string.manual_bpm_message,
+                    MusicBpmStore.MIN_BPM,
+                    MusicBpmStore.MAX_BPM
+                )
+            )
+            .setView(wrapper)
+            .setPositiveButton(R.string.prompt_save) { _, _ ->
+                val value = input.text?.toString()?.trim()?.toIntOrNull()
+                if (value == null ||
+                    value < MusicBpmStore.MIN_BPM ||
+                    value > MusicBpmStore.MAX_BPM
+                ) {
+                    Toast.makeText(
+                        this,
+                        getString(
+                            R.string.manual_bpm_invalid,
+                            MusicBpmStore.MIN_BPM,
+                            MusicBpmStore.MAX_BPM
+                        ),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    saveManualBpm(uriString, value)
+                }
+            }
+            .setNegativeButton(R.string.stability_close, null)
+            .show()
+    }
+
+    private fun saveManualBpm(uriString: String, bpm: Int) {
+        val prefs = getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE)
+        if (prefs.getString(TimeKeeperService.KEY_MUSIC_URI, null) != uriString) return
+        MusicBpmStore.put(prefs, uriString, bpm)
+        prefs.edit().putInt(TimeKeeperService.KEY_MUSIC_BPM, bpm).apply()
+        updateMusicUi()
+        if (TimeKeeperService.isReporting && !VariableBpm.isEnabled(prefs)) {
+            val delta = prefs.getInt(
+                TimeKeeperService.KEY_SPEED_DELTA,
+                TimeKeeperService.DEFAULT_BPM_DELTA
+            ).coerceIn(TimeKeeperService.MIN_BPM_DELTA, TimeKeeperService.MAX_BPM_DELTA)
+            startForegroundService(
+                Intent(this, TimeKeeperService::class.java)
+                    .setAction(TimeKeeperService.ACTION_SET_SPEED)
+                    .putExtra(
+                        TimeKeeperService.EXTRA_SPEED_RATE,
+                        (bpm + delta) / bpm.toFloat()
+                    )
+            )
+        }
+        Toast.makeText(this, getString(R.string.manual_bpm_saved, bpm), Toast.LENGTH_SHORT)
+            .show()
+    }
+
     private fun startBpmDetection(uriString: String) {
         val prefs = getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE)
+        val manualBpm = MusicBpmStore.get(prefs, uriString)
+        if (manualBpm > 0) {
+            prefs.edit().putInt(TimeKeeperService.KEY_MUSIC_BPM, manualBpm).apply()
+            updateMusicUi()
+            return
+        }
         prefs.edit().remove(TimeKeeperService.KEY_MUSIC_BPM).apply()
         updateMusicUi()
         Thread {
