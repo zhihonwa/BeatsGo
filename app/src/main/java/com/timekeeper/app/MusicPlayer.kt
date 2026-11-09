@@ -247,8 +247,8 @@ class MusicPlayer(context: Context) {
         private const val TAG = "MusicPlayer"
         const val DEFAULT_VOLUME = 0.6f
         const val DEFAULT_SPEED = 1.0f
-        const val MIN_SPEED = 0.75f
-        const val MAX_SPEED = 1.25f
+        const val MIN_SPEED = 0.5f
+        const val MAX_SPEED = 1.5f
         private const val BUILTIN_VOLUME = 1.0f
         private const val BUILTIN_SPEED = 1.0f
         private const val DUCK_RATIO = 0.2f

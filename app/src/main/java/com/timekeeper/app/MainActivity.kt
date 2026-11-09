@@ -91,19 +91,23 @@ class MainActivity : Activity() {
         })
         binding.musicSpeedSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val speedPercent = speedPercentFromSeekProgress(progress)
-                binding.musicSpeedLabel.text =
-                    getString(R.string.speed_percent, formatSpeedOffset(speedPercent))
+                val prefs = getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE)
+                val base = prefs.getInt(TimeKeeperService.KEY_MUSIC_BPM, 0)
+                if (base <= 0) return
+                val delta = progress - TimeKeeperService.MAX_BPM_DELTA
+                binding.musicSpeedLabel.text = (base + delta).toString()
                 if (!fromUser) return
-                getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE)
-                    .edit()
-                    .putInt(TimeKeeperService.KEY_SPEED_PERCENT, speedPercent)
+                prefs.edit()
+                    .putInt(TimeKeeperService.KEY_SPEED_DELTA, delta)
                     .apply()
                 if (TimeKeeperService.isReporting) {
                     startForegroundService(
                         Intent(this@MainActivity, TimeKeeperService::class.java)
                             .setAction(TimeKeeperService.ACTION_SET_SPEED)
-                            .putExtra(TimeKeeperService.EXTRA_SPEED_PERCENT, speedPercent)
+                            .putExtra(
+                                TimeKeeperService.EXTRA_SPEED_RATE,
+                                (base + delta) / base.toFloat()
+                            )
                     )
                 }
             }
@@ -112,6 +116,10 @@ class MainActivity : Activity() {
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
         })
+        binding.volumeMinusButton.setOnClickListener { applyVolumeDelta(-VOLUME_STEP) }
+        binding.volumePlusButton.setOnClickListener { applyVolumeDelta(VOLUME_STEP) }
+        binding.bpmMinusButton.setOnClickListener { applyBpmDelta(-TimeKeeperService.BPM_STEP) }
+        binding.bpmPlusButton.setOnClickListener { applyBpmDelta(TimeKeeperService.BPM_STEP) }
 
         updateMusicUi()
         renderCountdown()
@@ -231,6 +239,8 @@ class MainActivity : Activity() {
             .edit()
             .remove(TimeKeeperService.KEY_MUSIC_URI)
             .remove(TimeKeeperService.KEY_MUSIC_NAME)
+            .remove(TimeKeeperService.KEY_MUSIC_BPM)
+            .remove(TimeKeeperService.KEY_SPEED_DELTA)
             .apply()
         updateMusicUi()
         if (TimeKeeperService.isReporting) {
@@ -239,55 +249,120 @@ class MainActivity : Activity() {
                     .setAction(TimeKeeperService.ACTION_SET_MUSIC)
             )
         }
-        Toast.makeText(this, R.string.toast_music_cleared, Toast.LENGTH_SHORT).show()
     }
 
     private fun updateMusicUi() {
         val prefs = getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE)
         val uri = prefs.getString(TimeKeeperService.KEY_MUSIC_URI, null)
         val name = prefs.getString(TimeKeeperService.KEY_MUSIC_NAME, null)
-        if (uri != null) {
+        val hasMusic = uri != null
+        if (hasMusic) {
             val displayName = name ?: getString(R.string.music_unknown_file)
-            binding.musicNameText.text = displayName
-            binding.musicNameText.contentDescription = displayName
+            binding.pickMusicButton.text = strippedFileName(displayName)
+            binding.pickMusicButton.contentDescription = displayName
             binding.clearMusicButton.visibility = View.VISIBLE
         } else {
-            binding.musicNameText.setText(R.string.music_none)
-            binding.musicNameText.contentDescription = null
+            binding.pickMusicButton.setText(R.string.pick_music)
+            binding.pickMusicButton.contentDescription = null
             binding.clearMusicButton.visibility = View.GONE
         }
+
+        binding.musicVolumeSeek.isEnabled = hasMusic
+        binding.volumeMinusButton.isEnabled = hasMusic
+        binding.volumePlusButton.isEnabled = hasMusic
         val volume = prefs.getInt(
             TimeKeeperService.KEY_VOLUME,
             TimeKeeperService.DEFAULT_VOLUME_PERCENT
         ).coerceIn(0, 100)
         binding.musicVolumeSeek.progress = volume
-        binding.musicVolumeLabel.text = getString(R.string.volume_percent, volume)
-        val speedPercent = prefs.getInt(
-            TimeKeeperService.KEY_SPEED_PERCENT,
-            TimeKeeperService.DEFAULT_SPEED_PERCENT
-        ).coerceIn(
-            TimeKeeperService.MIN_SPEED_PERCENT,
-            TimeKeeperService.MAX_SPEED_PERCENT
-        )
-        binding.musicSpeedSeek.progress = seekProgressFromSpeedPercent(speedPercent)
-        binding.musicSpeedLabel.text =
-            getString(R.string.speed_percent, formatSpeedOffset(speedPercent))
+        if (hasMusic) {
+            binding.musicVolumeLabel.text = getString(R.string.volume_percent, volume)
+        } else {
+            binding.musicVolumeLabel.setText(R.string.value_unavailable)
+        }
+
+        val baseBpm = if (hasMusic) prefs.getInt(TimeKeeperService.KEY_MUSIC_BPM, 0) else 0
+        binding.musicSpeedSeek.isEnabled = baseBpm > 0
+        binding.bpmMinusButton.isEnabled = baseBpm > 0
+        binding.bpmPlusButton.isEnabled = baseBpm > 0
+        if (baseBpm > 0) {
+            val delta = prefs.getInt(
+                TimeKeeperService.KEY_SPEED_DELTA,
+                TimeKeeperService.DEFAULT_BPM_DELTA
+            ).coerceIn(TimeKeeperService.MIN_BPM_DELTA, TimeKeeperService.MAX_BPM_DELTA)
+            binding.musicSpeedSeek.progress = delta - TimeKeeperService.MIN_BPM_DELTA
+            binding.musicSpeedLabel.text = (baseBpm + delta).toString()
+        } else {
+            binding.musicSpeedSeek.progress = -TimeKeeperService.MIN_BPM_DELTA
+            binding.musicSpeedLabel.setText(R.string.value_unavailable)
+        }
     }
 
-    private fun formatSpeedOffset(percent: Int): String =
-        if (percent > 0) "+$percent" else percent.toString()
+    private fun applyVolumeDelta(delta: Int) {
+        val prefs = getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE)
+        val next = (
+            prefs.getInt(
+                TimeKeeperService.KEY_VOLUME,
+                TimeKeeperService.DEFAULT_VOLUME_PERCENT
+            ) + delta
+            ).coerceIn(0, 100)
+        binding.musicVolumeSeek.progress = next
+        binding.musicVolumeLabel.text = getString(R.string.volume_percent, next)
+        prefs.edit().putInt(TimeKeeperService.KEY_VOLUME, next).apply()
+        if (TimeKeeperService.isReporting) {
+            startForegroundService(
+                Intent(this, TimeKeeperService::class.java)
+                    .setAction(TimeKeeperService.ACTION_SET_VOLUME)
+                    .putExtra(TimeKeeperService.EXTRA_VOLUME_PERCENT, next)
+            )
+        }
+    }
 
-    private fun speedPercentFromSeekProgress(progress: Int): Int =
-        (progress + TimeKeeperService.MIN_SPEED_PERCENT).coerceIn(
-            TimeKeeperService.MIN_SPEED_PERCENT,
-            TimeKeeperService.MAX_SPEED_PERCENT
-        )
+    private fun applyBpmDelta(delta: Int) {
+        val prefs = getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE)
+        val base = prefs.getInt(TimeKeeperService.KEY_MUSIC_BPM, 0)
+        if (base <= 0) return
+        val next = (
+            prefs.getInt(
+                TimeKeeperService.KEY_SPEED_DELTA,
+                TimeKeeperService.DEFAULT_BPM_DELTA
+            ) + delta
+            ).coerceIn(TimeKeeperService.MIN_BPM_DELTA, TimeKeeperService.MAX_BPM_DELTA)
+        binding.musicSpeedSeek.progress = next - TimeKeeperService.MIN_BPM_DELTA
+        binding.musicSpeedLabel.text = (base + next).toString()
+        prefs.edit().putInt(TimeKeeperService.KEY_SPEED_DELTA, next).apply()
+        if (TimeKeeperService.isReporting) {
+            startForegroundService(
+                Intent(this, TimeKeeperService::class.java)
+                    .setAction(TimeKeeperService.ACTION_SET_SPEED)
+                    .putExtra(TimeKeeperService.EXTRA_SPEED_RATE, (base + next) / base.toFloat())
+            )
+        }
+    }
 
-    private fun seekProgressFromSpeedPercent(percent: Int): Int =
-        (percent - TimeKeeperService.MIN_SPEED_PERCENT).coerceIn(
-            0,
-            TimeKeeperService.MAX_SPEED_PERCENT - TimeKeeperService.MIN_SPEED_PERCENT
-        )
+    private fun startBpmDetection(uriString: String) {
+        val prefs = getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE)
+        prefs.edit().remove(TimeKeeperService.KEY_MUSIC_BPM).apply()
+        updateMusicUi()
+        Thread {
+            val bpm = try {
+                BpmDetector.detect(applicationContext, Uri.parse(uriString))
+            } catch (e: Exception) {
+                null
+            }
+            if (bpm != null &&
+                prefs.getString(TimeKeeperService.KEY_MUSIC_URI, null) == uriString
+            ) {
+                prefs.edit().putInt(TimeKeeperService.KEY_MUSIC_BPM, bpm).apply()
+            }
+            uiHandler.post { updateMusicUi() }
+        }.start()
+    }
+
+    private fun strippedFileName(name: String): String {
+        val trimmed = name.trim()
+        return if (trimmed.contains('.')) trimmed.substringBeforeLast('.') else trimmed
+    }
 
     private fun queryDisplayName(uri: Uri): String {
         var name = uri.lastPathSegment ?: getString(R.string.music_unknown_file)
@@ -458,8 +533,9 @@ class MainActivity : Activity() {
             .edit()
             .putString(TimeKeeperService.KEY_MUSIC_URI, uri.toString())
             .putString(TimeKeeperService.KEY_MUSIC_NAME, name)
+            .remove(TimeKeeperService.KEY_SPEED_DELTA)
             .apply()
-        updateMusicUi()
+        startBpmDetection(uri.toString())
         if (TimeKeeperService.isReporting) {
             startForegroundService(
                 Intent(this, TimeKeeperService::class.java)
@@ -485,5 +561,6 @@ class MainActivity : Activity() {
     companion object {
         private const val REQUEST_CODE_NOTIFICATION = 100
         private const val REQUEST_CODE_PICK_MUSIC = 101
+        private const val VOLUME_STEP = 5
     }
 }

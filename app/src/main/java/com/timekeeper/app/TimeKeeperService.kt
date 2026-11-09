@@ -58,7 +58,7 @@ class TimeKeeperService : Service() {
             .coerceIn(MIN_INTERVAL, MAX_INTERVAL)
         musicPlayer = MusicPlayer(this).apply {
             setVolume(prefs.getInt(KEY_VOLUME, DEFAULT_VOLUME_PERCENT) / 100f)
-            setSpeed(speedFactor(prefs.getInt(KEY_SPEED_PERCENT, DEFAULT_SPEED_PERCENT)))
+            setSpeed(speedRate())
             setMusicUri(prefs.getString(KEY_MUSIC_URI, null)?.let { Uri.parse(it) })
         }
         ttsManager = TtsManager(this).apply {
@@ -113,10 +113,7 @@ class TimeKeeperService : Service() {
             )
 
             ACTION_SET_SPEED -> musicPlayer.setSpeed(
-                speedFactor(
-                    intent?.getIntExtra(EXTRA_SPEED_PERCENT, DEFAULT_SPEED_PERCENT)
-                        ?: DEFAULT_SPEED_PERCENT
-                )
+                intent?.getFloatExtra(EXTRA_SPEED_RATE, speedRate()) ?: speedRate()
             )
 
             ACTION_SET_MUSIC -> applyMusicSource(intent?.getStringExtra(EXTRA_MUSIC_URI))
@@ -227,11 +224,17 @@ class TimeKeeperService : Service() {
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         musicPlayer.setMusicUri(prefs.getString(KEY_MUSIC_URI, null)?.let { Uri.parse(it) })
         musicPlayer.setVolume(prefs.getInt(KEY_VOLUME, DEFAULT_VOLUME_PERCENT) / 100f)
-        musicPlayer.setSpeed(speedFactor(prefs.getInt(KEY_SPEED_PERCENT, DEFAULT_SPEED_PERCENT)))
+        musicPlayer.setSpeed(speedRate())
     }
 
-    private fun speedFactor(percent: Int): Float =
-        (100 + percent.coerceIn(MIN_SPEED_PERCENT, MAX_SPEED_PERCENT)) / 100f
+    private fun speedRate(): Float {
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val base = prefs.getInt(KEY_MUSIC_BPM, 0)
+        if (base <= 0) return 1f
+        val delta = prefs.getInt(KEY_SPEED_DELTA, DEFAULT_BPM_DELTA)
+            .coerceIn(MIN_BPM_DELTA, MAX_BPM_DELTA)
+        return (base + delta) / base.toFloat()
+    }
 
     private fun applyMusicSource(uriString: String?) {
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
@@ -505,13 +508,14 @@ class TimeKeeperService : Service() {
         const val ACTION_STATE_CHANGED = "com.timekeeper.app.action.STATE_CHANGED"
         const val EXTRA_INTERVAL_MINUTES = "extra_interval_minutes"
         const val EXTRA_VOLUME_PERCENT = "extra_volume_percent"
-        const val EXTRA_SPEED_PERCENT = "extra_speed_percent"
+        const val EXTRA_SPEED_RATE = "extra_speed_rate"
         const val EXTRA_MUSIC_URI = "extra_music_uri"
         const val PREFS_NAME = "time_keeper_prefs"
         const val KEY_INTERVAL = "interval_minutes"
         const val KEY_RUNNING = "reporting_running"
         const val KEY_VOLUME = "music_volume_percent"
-        const val KEY_SPEED_PERCENT = "music_speed_percent"
+        const val KEY_MUSIC_BPM = "music_track_bpm"
+        const val KEY_SPEED_DELTA = "music_speed_delta_bpm"
         const val KEY_MUSIC_URI = "music_uri"
         const val KEY_MUSIC_NAME = "music_name"
         const val KEY_PROMPT_ELAPSED_ENABLED = "prompt_elapsed_enabled"
@@ -530,9 +534,10 @@ class TimeKeeperService : Service() {
         private const val REPORT_SEPARATOR = "，"
         const val DEFAULT_INTERVAL = 5
         const val DEFAULT_VOLUME_PERCENT = 60
-        const val DEFAULT_SPEED_PERCENT = 0
-        const val MIN_SPEED_PERCENT = -25
-        const val MAX_SPEED_PERCENT = 25
+        const val DEFAULT_BPM_DELTA = 0
+        const val BPM_STEP = 5
+        const val MIN_BPM_DELTA = -25
+        const val MAX_BPM_DELTA = 25
         const val MIN_INTERVAL = 1
         const val MAX_INTERVAL = 240
 
