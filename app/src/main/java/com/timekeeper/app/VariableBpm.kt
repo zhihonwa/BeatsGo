@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 object VariableBpm {
 
     const val STAGE_COUNT = 5
-    const val MIN_DURATION = 5
+    const val MIN_DURATION = 0
     const val MAX_DURATION = 30
     const val DURATION_STEP = 5
     const val MIN_DELTA = 0
