@@ -47,6 +47,16 @@ class MusicPlayer(context: Context) {
         if (playing) applySpeed()
     }
 
+    fun positionSeconds(): Int {
+        val mp = player ?: return -1
+        return try {
+            if (playing) mp.currentPosition / 1000 else -1
+        } catch (e: Exception) {
+            Log.w(TAG, "获取播放位置异常", e)
+            -1
+        }
+    }
+
     fun start() {
         if (playing) {
             applyVolume()

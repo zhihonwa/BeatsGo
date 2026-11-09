@@ -33,6 +33,12 @@ class AboutActivity : Activity() {
             expandedInitially = false
         )
         bindCollapsible(
+            header = binding.aboutDetectHeader,
+            content = binding.aboutDetectContent,
+            chevron = binding.aboutDetectChevron,
+            expandedInitially = false
+        )
+        bindCollapsible(
             header = binding.aboutRepoHeader,
             content = binding.aboutRepoContent,
             chevron = binding.aboutRepoChevron,

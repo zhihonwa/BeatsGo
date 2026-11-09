@@ -40,7 +40,10 @@ class MainActivity : Activity() {
 
     private val stateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            refreshButtonState()
+            when (intent?.action) {
+                TimeKeeperService.ACTION_BPM_UPDATED -> updateMusicUi()
+                else -> refreshButtonState()
+            }
         }
     }
 
@@ -128,6 +131,7 @@ class MainActivity : Activity() {
     override fun onStart() {
         super.onStart()
         val filter = IntentFilter(TimeKeeperService.ACTION_STATE_CHANGED)
+        filter.addAction(TimeKeeperService.ACTION_BPM_UPDATED)
         if (Build.VERSION.SDK_INT >= 33) {
             registerReceiver(stateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {

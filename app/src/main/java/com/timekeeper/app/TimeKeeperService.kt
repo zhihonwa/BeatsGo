@@ -23,6 +23,7 @@ import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
 import java.util.Calendar
+import kotlin.math.abs
 
 class TimeKeeperService : Service() {
 
@@ -43,10 +44,13 @@ class TimeKeeperService : Service() {
 
     private var nextReportSecond = 0
 
+    private var bpmRecheckDone = false
+
     private val countdownRunnable = object : Runnable {
         override fun run() {
             if (!running) return
             checkAndReport()
+            maybeRecheckBpm()
             handler.postDelayed(this, 1000L)
         }
     }
@@ -133,6 +137,7 @@ class TimeKeeperService : Service() {
         isPaused = false
         setReportingRequested(true)
         syncMusicSettingsFromPrefs()
+        bpmRecheckDone = false
         acquireWakeLock()
         musicPlayer.start()
         intervalSeconds = intervalMinutes * 60
@@ -236,12 +241,47 @@ class TimeKeeperService : Service() {
         return (base + delta) / base.toFloat()
     }
 
+    private fun maybeRecheckBpm() {
+        if (bpmRecheckDone || !running) return
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val uriString = prefs.getString(KEY_MUSIC_URI, null) ?: return
+        val positionSeconds = musicPlayer.positionSeconds()
+        if (positionSeconds < BPM_RECHECK_AT_SECONDS) return
+        bpmRecheckDone = true
+        Thread {
+            val bpm = try {
+                BpmDetector.detect(
+                    applicationContext,
+                    Uri.parse(uriString),
+                    positionSeconds,
+                    BPM_RECHECK_WINDOW_SECONDS
+                )
+            } catch (e: Exception) {
+                Log.w(TAG, "BPM 复测异常", e)
+                null
+            }
+            handler.post { applyBpmRecheck(uriString, bpm) }
+        }.start()
+    }
+
+    private fun applyBpmRecheck(uriString: String, bpm: Int?) {
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        if (prefs.getString(KEY_MUSIC_URI, null) != uriString) return
+        if (bpm == null || bpm < MIN_BPM_VALUE || bpm > MAX_BPM_VALUE) return
+        val old = prefs.getInt(KEY_MUSIC_BPM, 0)
+        if (old > 0 && abs(bpm - old) <= BPM_RECHECK_MIN_DELTA) return
+        prefs.edit().putInt(KEY_MUSIC_BPM, bpm).apply()
+        if (running) musicPlayer.setSpeed(speedRate())
+        sendBroadcast(Intent(ACTION_BPM_UPDATED).setPackage(packageName))
+    }
+
     private fun applyMusicSource(uriString: String?) {
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
             .edit()
             .putString(KEY_MUSIC_URI, uriString)
             .apply()
         musicPlayer.setMusicUri(uriString?.let { Uri.parse(it) })
+        bpmRecheckDone = false
         when {
             running -> {
                 musicPlayer.stop()
@@ -497,6 +537,11 @@ class TimeKeeperService : Service() {
         private const val REQUEST_CODE_STOP = 12
         private const val REQUEST_CODE_ALARM = 21
         private const val SPEAK_DEDUP_MILLIS = 30_000L
+        private const val BPM_RECHECK_AT_SECONDS = 90
+        private const val BPM_RECHECK_WINDOW_SECONDS = 60
+        private const val BPM_RECHECK_MIN_DELTA = 2
+        private const val MIN_BPM_VALUE = 60
+        private const val MAX_BPM_VALUE = 200
         const val ACTION_RESUME = "com.timekeeper.app.action.RESUME"
         const val ACTION_PAUSE = "com.timekeeper.app.action.PAUSE"
         const val ACTION_PAUSE_TIMER = "com.timekeeper.app.action.PAUSE_TIMER"
@@ -505,6 +550,7 @@ class TimeKeeperService : Service() {
         const val ACTION_SET_VOLUME = "com.timekeeper.app.action.SET_VOLUME"
         const val ACTION_SET_SPEED = "com.timekeeper.app.action.SET_SPEED"
         const val ACTION_SET_MUSIC = "com.timekeeper.app.action.SET_MUSIC"
+        const val ACTION_BPM_UPDATED = "com.timekeeper.app.action.BPM_UPDATED"
         const val ACTION_STATE_CHANGED = "com.timekeeper.app.action.STATE_CHANGED"
         const val EXTRA_INTERVAL_MINUTES = "extra_interval_minutes"
         const val EXTRA_VOLUME_PERCENT = "extra_volume_percent"

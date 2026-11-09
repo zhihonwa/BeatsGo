@@ -19,9 +19,15 @@ object BpmDetector {
     private const val MIN_BPM = 60
     private const val MAX_BPM = 200
 
-    fun detect(context: Context, uri: Uri): Int? {
+    fun detect(
+        context: Context,
+        uri: Uri,
+        startOffsetSeconds: Int = 0,
+        windowSeconds: Int = MAX_DECODE_SECONDS
+    ): Int? {
         return try {
-            val samples = decodeMonoPcm(context, uri) ?: return null
+            val samples = decodeMonoPcm(context, uri, startOffsetSeconds, windowSeconds)
+                ?: return null
             val envelope = energyEnvelope(samples, HOP)
             estimateBpm(envelope, TARGET_SAMPLE_RATE.toFloat() / HOP)
         } catch (e: Exception) {
@@ -30,7 +36,12 @@ object BpmDetector {
         }
     }
 
-    private fun decodeMonoPcm(context: Context, uri: Uri): FloatArray? {
+    private fun decodeMonoPcm(
+        context: Context,
+        uri: Uri,
+        startOffsetSeconds: Int,
+        windowSeconds: Int
+    ): FloatArray? {
         val extractor = MediaExtractor()
         var codec: MediaCodec? = null
         try {
@@ -47,6 +58,12 @@ object BpmDetector {
             }
             if (trackIndex < 0 || format == null) return null
             extractor.selectTrack(trackIndex)
+            if (startOffsetSeconds > 0) {
+                extractor.seekTo(
+                    startOffsetSeconds * 1_000_000L,
+                    MediaExtractor.SEEK_TO_CLOSEST_SYNC
+                )
+            }
 
             var sampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE)
             var channels = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
@@ -57,7 +74,7 @@ object BpmDetector {
                 it.start()
             }
 
-            val maxSamples = TARGET_SAMPLE_RATE * MAX_DECODE_SECONDS
+            val maxSamples = TARGET_SAMPLE_RATE * windowSeconds
             val out = FloatArray(maxSamples)
             var outCount = 0
             var sawInputEos = false

@@ -57,6 +57,8 @@
     <string name="about_usage_body">1.只操作一次即可。点击底部行稳定性设置”，点击“逐项授权”。\n2.“选择运动音乐”挑选本地音乐，如何选择音乐请参考关于页面的“运动音乐 BPM 建议”\n3. 点击“开始报时”，立即播报当前时间，并开始播放音乐与计时\n  </string>
     <string name="about_bpm_title">运动音乐 BPM 建议</string>
     <string name="about_bpm_body">运动的音乐节奏（BPM，每分钟节拍数）与步频越接近，越能带动步伐、提升耐力。推荐区间：\n\n慢走 / 散步：80–100 BPM\n快走：100–130 BPM\n慢跑：120–140 BPM\n常规跑步：140–160 BPM\n快跑：160–180 BPM\n\n提示：先按自己的舒适步频选歌，再逐步提高音乐 BPM 来提升强度。</string>
+    <string name="about_detect_title">音乐 BPM 检测</string>
+    <string name="about_detect_body">选择音乐后，应用会自动检测该曲目的 BPM 并显示在设置面板中，方便你对照步频调速。由于初始检测基于曲目开头的音频片段，结果可能与实际节拍略有偏差：当曲目播放约一分半钟后，应用会对当前曲目自动进行一次复测；仅当复测结果通过预设校验（数值有效、且与原检测值差异明显）时，才会用复测值替换原值，否则保持原值不变。</string>
     <string name="about_repo_title">开源与支持</string>
     <string name="about_repo_body">本项目完全免费使用。如果它帮到了你，欢迎在 GitHub 仓库点亮一颗 Star 支持一下。\n仓库地址：https://github.com/zhihonwa/BeatsGo</string>
 </resources>
