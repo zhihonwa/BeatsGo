@@ -4,11 +4,11 @@ import android.content.SharedPreferences
 
 object VariableBpm {
 
-    const val STAGE_COUNT = 5
+    const val STAGE_COUNT = 7
     const val MIN_DURATION = 0
     const val MAX_DURATION = 30
     const val DURATION_STEP = 5
-    const val MIN_DELTA = 0
+    const val MIN_DELTA = -25
     const val MAX_DELTA = 25
     const val DELTA_STEP = 5
 
@@ -17,8 +17,8 @@ object VariableBpm {
     private const val KEY_DURATION_SUFFIX = "_duration"
     private const val KEY_DELTA_SUFFIX = "_delta"
 
-    val DEFAULT_DELTAS = intArrayOf(0, 10, 10, -10, -10)
-    val DEFAULT_DURATIONS = intArrayOf(10, 10, 5, 5, 10)
+    val DEFAULT_DELTAS = intArrayOf(0, 10, -10, 10, -10, 10, -15)
+    val DEFAULT_DURATIONS = intArrayOf(10, 5, 5, 5, 5, 5, 5)
 
     fun isEnabled(prefs: SharedPreferences): Boolean =
         prefs.getBoolean(KEY_ENABLED, false)
@@ -31,9 +31,8 @@ object VariableBpm {
 
     fun readDeltas(prefs: SharedPreferences): IntArray =
         IntArray(STAGE_COUNT) { i ->
-            val def = DEFAULT_DELTAS[i]
-            val raw = prefs.getInt(stageDeltaKey(i + 1), def)
-            if (def >= 0) raw.coerceIn(0, MAX_DELTA) else raw.coerceIn(-MAX_DELTA, 0)
+            prefs.getInt(stageDeltaKey(i + 1), DEFAULT_DELTAS[i])
+                .coerceIn(MIN_DELTA, MAX_DELTA)
         }
 
     fun saveDeltas(prefs: SharedPreferences, deltas: IntArray) {

@@ -6,7 +6,7 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import com.timekeeper.app.databinding.ActivityVariableBpmBinding
-import java.util.Locale
+
 import kotlin.math.abs
 
 class VariableBpmActivity : Activity() {
@@ -56,6 +56,18 @@ class VariableBpmActivity : Activity() {
                 binding.stage5DeltaMinus, binding.stage5DeltaPlus,
                 binding.stage5DurationText,
                 binding.stage5DurationMinus, binding.stage5DurationPlus
+            ),
+            StageViews(
+                binding.stage6BpmText, binding.stage6DeltaText,
+                binding.stage6DeltaMinus, binding.stage6DeltaPlus,
+                binding.stage6DurationText,
+                binding.stage6DurationMinus, binding.stage6DurationPlus
+            ),
+            StageViews(
+                binding.stage7BpmText, binding.stage7DeltaText,
+                binding.stage7DeltaMinus, binding.stage7DeltaPlus,
+                binding.stage7DurationText,
+                binding.stage7DurationMinus, binding.stage7DurationPlus
             )
         )
     }
@@ -110,7 +122,7 @@ class VariableBpmActivity : Activity() {
             val stage = index + 1
             views.bpmText.text = bpmTextFor(stage, bpms?.get(index), deltas[index])
             views.durationText.text = durations[index].toString()
-            views.deltaText?.text = abs(deltas[index]).toString()
+            views.deltaText?.text = formatDelta(deltas[index])
             val deltaEditable = baseBpm > 0
             views.deltaMinus?.isEnabled = deltaEditable
             views.deltaPlus?.isEnabled = deltaEditable
@@ -124,24 +136,21 @@ class VariableBpmActivity : Activity() {
     private fun bpmTextFor(stage: Int, bpm: Int?, delta: Int): String = when {
         bpm == null -> getString(R.string.value_unavailable)
         stage == 1 -> getString(R.string.variable_bpm_stage_bpm_auto, bpm)
-        else -> getString(
-            R.string.variable_bpm_stage_bpm,
-            bpm,
-            String.format(Locale.US, "%+d", delta)
-        )
+        else -> getString(R.string.variable_bpm_stage_bpm, bpm, formatDelta(delta))
+    }
+
+    private fun formatDelta(delta: Int): String = when {
+        delta > 0 -> "+$delta"
+        delta < 0 -> "−${abs(delta)}"
+        else -> "±0"
     }
 
     private fun editDelta(stage: Int, step: Int) {
         if (baseBpm <= 0) return
-        val magnitude = abs(deltas[stage - 1])
-        val nextMagnitude = (magnitude + step)
+        val next = (deltas[stage - 1] + step)
             .coerceIn(VariableBpm.MIN_DELTA, VariableBpm.MAX_DELTA)
-        if (nextMagnitude == magnitude) return
-        val candidate = deltas.copyOf()
-        candidate[stage - 1] =
-            if (VariableBpm.DEFAULT_DELTAS[stage - 1] >= 0) nextMagnitude else -nextMagnitude
-
-        deltas = candidate
+        if (next == deltas[stage - 1]) return
+        deltas[stage - 1] = next
         VariableBpm.saveDeltas(
             getSharedPreferences(TimeKeeperService.PREFS_NAME, MODE_PRIVATE),
             deltas

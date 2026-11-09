@@ -58,21 +58,23 @@
     <string name="about_bpm_title">运动音乐 BPM 建议</string>
     <string name="about_bpm_body">运动的音乐节奏（BPM，每分钟节拍数）与步频越接近，越能带动步伐、提升耐力。推荐区间：\n\n慢走 / 散步：80–100 BPM\n快走：100–130 BPM\n慢跑：120–140 BPM\n常规跑步：140–160 BPM\n快跑：160–180 BPM\n\n提示：先按自己的舒适步频选歌，再逐步提高音乐 BPM 来提升强度。</string>
     <string name="about_detect_title">音乐 BPM 检测与手动设定</string>
-    <string name="about_detect_body">选择音乐后，应用会自动检测该曲目的 BPM 并显示在主界面 BPM 行。自动检测基于曲目开头的音频片段分析，结果可能与实际节拍存在偏差（例如 180 BPM 被识别为 89 BPM）。由于 BPM 感知带有一定主观性，你可以直接点击主界面的 BPM 数值，手动输入你认为准确的 BPM（60–200）：手动值会立即保存并与该音乐文件永久绑定，下次选择同一首音乐时自动使用，不再重复检测；启用可变 BPM 时，五个阶段的变速均以该值为基准计算。</string>
+    <string name="about_detect_body">选择音乐后，应用会自动检测该曲目的 BPM 并显示在主界面 BPM 行。自动检测基于曲目开头的音频片段分析，结果可能与实际节拍存在偏差（例如 180 BPM 被识别为 89 BPM）。由于 BPM 感知带有一定主观性，你可以直接点击主界面的 BPM 数值，手动输入你认为准确的 BPM（60–200）：手动值会立即保存并与该音乐文件永久绑定，下次选择同一首音乐时自动使用，不再重复检测；启用可变 BPM 时，七个阶段的变速均以该值为基准计算。</string>
     <string name="about_repo_title">开源与支持</string>
     <string name="about_repo_body">本项目完全免费使用。如果它帮到了你，欢迎在 GitHub 仓库点亮一颗 Star 支持一下。\n仓库地址：https://github.com/zhihonwa/BeatsGo</string>
 
     <string name="cd_bpm_entry">打开可变 BPM 设定</string>
     <string name="variable_bpm_page_title">可变 BPM 设定</string>
-    <string name="variable_bpm_page_desc">本选项为变速运动设计：启用后，音乐按五个阶段依次变速播放——先逐步加快、再逐步回落，每阶段按设定时长自动切换 BPM。方案全局有效，对所有音乐共用。</string>
+    <string name="variable_bpm_page_desc">本选项为变速运动设计（参考法特莱克跑变速训练法）：启用后，音乐按七个阶段依次变速播放——以基准 BPM 为起点，加快与回落交替、最后以较低 BPM 收尾，每阶段按设定时长自动切换 BPM。方案全局有效，对所有音乐共用。</string>
     <string name="variable_bpm_enable">启用可变 BPM</string>
-    <string name="variable_bpm_enable_hint">启用后播放将按下方五个阶段自动变速；关闭时使用主界面手动 BPM 设置</string>
+    <string name="variable_bpm_enable_hint">启用后播放将按下方七个阶段自动变速；关闭时使用主界面手动 BPM 设置</string>
     <string name="variable_bpm_stage_1">阶段 1</string>
     <string name="variable_bpm_stage_2">阶段 2</string>
     <string name="variable_bpm_stage_3">阶段 3</string>
     <string name="variable_bpm_stage_4">阶段 4</string>
     <string name="variable_bpm_stage_5">阶段 5</string>
-    <string name="variable_bpm_stage_bpm_auto">%1$d BPM（自动检测）</string>
+    <string name="variable_bpm_stage_6">阶段 6</string>
+    <string name="variable_bpm_stage_7">阶段 7</string>
+    <string name="variable_bpm_stage_bpm_auto">%1$d BPM（基准）</string>
     <string name="variable_bpm_stage_bpm">%1$d BPM（%2$s）</string>
     <string name="variable_bpm_unit_bpm">BPM</string>
     <string name="variable_bpm_unit_minutes">分钟</string>
