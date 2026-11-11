@@ -7,7 +7,7 @@ object VariableBpm {
     const val STAGE_COUNT = 7
     const val MIN_DURATION = 0
     const val MAX_DURATION = 30
-    const val DURATION_STEP = 5
+    const val DURATION_STEP = 1
     const val MIN_DELTA = -25
     const val MAX_DELTA = 25
     const val DELTA_STEP = 5

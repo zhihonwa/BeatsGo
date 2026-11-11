@@ -13,8 +13,8 @@ android {
         applicationId = "com.timekeeper.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = providers.gradleProperty("ciVersionCode").orNull?.toIntOrNull() ?: 26
-        versionName = providers.gradleProperty("ciVersionName").orNull ?: "1.13.0"
+        versionCode = providers.gradleProperty("ciVersionCode").orNull?.toIntOrNull() ?: 27
+        versionName = providers.gradleProperty("ciVersionName").orNull ?: "1.13.1"
     }
 
     buildTypes {
