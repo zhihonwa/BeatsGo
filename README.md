@@ -26,11 +26,12 @@ BeatsGo 是一款为运动场景设计的 Android 应用：一边播放你喜欢
 <p align="center">
   <img src="screenshots/1-main.jpg" width="200" alt="主界面" />
   <img src="screenshots/2-privileges.jpg" width="200" alt="运行稳定性设置" />
-  <img src="screenshots/3-options.jpg" width="200" alt="语音提示定制" />
-  <img src="screenshots/4-about.jpg" width="200" alt="关于" />
+  <img src="screenshots/3-variable-BPM.jpg" width="200" alt="可变 BPM 设定" />
+  <img src="screenshots/4-options.jpg" width="200" alt="语音提示定制" />
+  <img src="screenshots/5-about.jpg" width="200" alt="关于" />
 </p>
 
-从左到右依次为：**主界面**（报时间隔 / 倒计时与总时长 / 开始-停止、暂停-恢复 / 选音乐、音量与 BPM / 稳定性设置入口）、**运行稳定性设置**（电池优化、通知、精确闹钟授权及厂商后台指引）、**语音提示定制**（勾选并自定义"已完成 xx 分钟""请补充水分""坚持运动，加油"播报）、**关于**（应用介绍、使用步骤、运动音乐 BPM 建议与开源支持）。
+从左到右依次为：**主界面**（报时间隔 / 倒计时与总时长 / 开始-停止、暂停-恢复 / 选音乐、音量与 BPM / 稳定性设置入口）、**运行稳定性设置**（电池优化、通知、精确闹钟授权及厂商后台指引）、**可变 BPM 设定**（七阶段法特莱克跑变速方案：启用开关、各阶段 BPM 与时长/增减量编辑、总时长汇总与一键恢复缺省）、**语音提示定制**（勾选并自定义"已完成 xx 分钟""请补充水分""坚持运动，加油"播报）、**关于**（应用介绍、使用步骤、运动音乐 BPM 建议与开源支持）。
 
 ## 工程结构
 
